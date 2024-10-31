@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        #threadList {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .thread {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .post {
+            background: #e9e9e9;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .deleteButton {
+            color: red;
+            cursor: pointer;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>掲示板</h1>
+
+    <form id="adminForm">
+        <input type="text" id="adminKey" placeholder="管理者登録用キー" required>
+        <button type="submit">管理者登録</button>
+    </form>
+
+    <form id="threadForm">
+        <input type="text" id="threadTitle" placeholder="スレッドタイトル" required>
+        <button type="submit">スレッドを立てる</button>
+    </form>
+
+    <div id="threadList"></div>
+
+    <script>
+        const adminForm = document.getElementById('adminForm');
+        const threadForm = document.getElementById('threadForm');
+        const threadList = document.getElementById('threadList');
+        let isAdmin = false;
+
+        adminForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const adminKey = document.getElementById('adminKey').value;
+
+            if (adminKey === "Shion3215t") {
+                isAdmin = true;
+                alert("管理者権限が与えられました。");
+                adminForm.style.display = 'none';
+            } else {
+                alert("無効な管理者キーです。");
+            }
+        });
+
+        threadForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const threadTitle = document.getElementById('threadTitle').value;
+
+            // スレッドを作成
+            const threadDiv = document.createElement('div');
+            threadDiv.classList.add('thread');
+            threadDiv.innerHTML = `<h2>${threadTitle}</h2>
+                                   <form class="postForm">
+                                       <input type="text" placeholder="名前" required>
+                                       <textarea placeholder="投稿内容" required></textarea>
+                                       <input type="file" accept="image/*">
+                                       <button type="submit">投稿</button>
+                                   </form>
+                                   <div class="postList"></div>`;
+            threadList.appendChild(threadDiv);
+
+            // 投稿フォームのイベントリスナーを追加
+            const postForm = threadDiv.querySelector('.postForm');
+            const postList = threadDiv.querySelector('.postList');
+
+            postForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const name = postForm.querySelector('input[type="text"]').value;
+                const content = postForm.querySelector('textarea').value;
+                const fileInput = postForm.querySelector('input[type="file"]');
+                const file = fileInput.files[0];
+
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('post');
+                postDiv.innerHTML = `<strong>${name}</strong><br>${content}`;
+
+                // 画像の表示
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        postDiv.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                postDiv.innerHTML += `<span class="deleteButton" style="display: ${isAdmin ? 'inline' : 'none'};">[削除]</span>`;
+                postList.appendChild(postDiv);
+
+                // 削除ボタンのイベントリスナー
+                const deleteButton = postDiv.querySelector('.deleteButton');
+                deleteButton.addEventListener('click', function() {
+                    postList.removeChild(postDiv);
+                });
+
+                postForm.reset();
+            });
+
+            threadForm.reset();
+        });
+    </script>
+</body>
+</html>
